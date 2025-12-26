@@ -23,6 +23,17 @@
       ],
       "run_at": "document_end",
       "all_frames": true
+    },
+    {
+      "matches": [
+        "*://13tv.co.il/*"
+      ],
+      "js": [
+        "utils.js",
+        "13tv.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": true
     }
   ]
 }

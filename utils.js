@@ -142,33 +142,37 @@ utils.waitFor = function (selectorOrXpath, callback = null) {
         selector = false;
     }
     function search(e) {
+        matches = [];
         if (selector) {
+            if (e.querySelector) {
+                matches = [...e.querySelectorAll(selectorOrXpath)];
+            }
             if (e.matches && e.matches(selectorOrXpath)) {
-                return e;
-            } else if (e.querySelector) {
-                return e.querySelector(selectorOrXpath);
-            } else {
-                return null;
+                matches.push(e);
             }
         } else {
-            return document.evaluate(selectorOrXpath, e, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+            const xpathResult = document.evaluate(selectorOrXpath, e, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+            matches = Array.from({ length: xpathResult.snapshotLength }, (_, i) => xpathResult.snapshotItem(i));
         }
+        return matches;
     }
 
     return new Promise(resolve => {
-        e = search(document);
+        matches = search(document);
         if (callback || !e) {
             const observer = new MutationObserver(mutations => {
                 for (m of mutations) {
                     for (n of m.addedNodes) {
-                        e = search(n);
-                        if (e) {
+                        matches = search(n);
+                        if (matches.length !== 0) {
                             if (callback) {
-                                callback(e);
+                                for (m of matches) {
+                                    callback(m);
+                                }
                             } else {
                                 observer.disconnect();
                             }
-                            resolve(e);
+                            resolve(matches[0]);
                         }
                     }
                 }
@@ -180,11 +184,13 @@ utils.waitFor = function (selectorOrXpath, callback = null) {
                 subtree: true
             });
         }
-        if (e) {
-            if (callback) {
-                callback(e);
+        if (callback) {
+            for (m of matches) {
+                callback(m);
             }
-            return resolve(e);
+        }
+        if (matches.length !== 0) {
+            return resolve(matches[0]);
         }
 
     });
