@@ -159,7 +159,7 @@ utils.waitFor = function (selectorOrXpath, callback = null) {
 
     return new Promise(resolve => {
         matches = search(document);
-        if (callback || !e) {
+        if (callback || matches.length === 0) {
             const observer = new MutationObserver(mutations => {
                 for (m of mutations) {
                     for (n of m.addedNodes) {
